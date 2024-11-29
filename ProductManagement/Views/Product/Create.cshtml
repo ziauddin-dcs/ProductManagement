@@ -1,0 +1,82 @@
+﻿@model ProductManagement.Models.Product
+
+@{
+    ViewBag.Title = "Create Product";
+}
+
+<h2>Create Product</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProductName)
+        @Html.TextBoxFor(model => model.ProductName, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.CategoryID)
+        @Html.DropDownListFor(model => model.CategoryID, (SelectList)ViewBag.Categories, "Select Category", new { @class = "form-control", id = "CategoryDropdown" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.SubcategoryID)
+        @Html.DropDownListFor(model => model.SubcategoryID, new SelectList(Enumerable.Empty<SelectListItem>()), "Select Subcategory", new { @class = "form-control", id = "SubcategoryDropdown" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Qty)
+        @Html.TextBoxFor(model => model.Qty, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Price)
+        @Html.TextBoxFor(model => model.Price, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Total)
+        @Html.TextBoxFor(model => model.Total, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function ()
+        {
+            $('#CategoryDropdown').change(function ()
+            {
+                var categoryId = $(this).val();
+                if (categoryId) {
+                    $.ajax({
+                        url: '@Url.Action("GetSubcategories", "Product")',
+                        data: { categoryId: categoryId },
+                        success: function (data) {
+                            var subcategoryDropdown = $('#SubcategoryDropdown');
+                            subcategoryDropdown.empty();
+                            subcategoryDropdown.append('<option value="">Select Subcategory</option>');
+                            $.each(data, function (index, subcategory) {
+                                subcategoryDropdown.append('<option value="' + subcategory.SubcategoryID + '">' + subcategory.SubcategoryName + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+            function calculateTotal() {
+                var qty = parseFloat($('#Qty').val()) || 0;  // Default to 0 if not a valid number
+                var price = parseFloat($('#Price').val()) || 0;  // Default to 0 if not a valid number
+                var total = qty * price;  // Calculate the total
+                $('#Total').val(total.toFixed(2));  // Set the total (rounded to 2 decimal places)
+            }
+
+            // Trigger calculation when Qty or Price changes
+            $('#Qty, #Price').on('input', function () {
+                calculateTotal();
+            });
+        });
+    </script>
+}
